@@ -29,7 +29,7 @@
             
             return options.disableOptions;
 	}
-    }
+    })();
 
     self.setDisabledOptions = (function () {
 

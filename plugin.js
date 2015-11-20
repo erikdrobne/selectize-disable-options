@@ -23,6 +23,14 @@
         options = $.extend({'disableOptions': []}, options);
     }
 
+    self.getDisabledOptions = (function () {
+    	
+	return function() {
+            
+            return options.disableOptions;
+	}
+    }
+
     self.setDisabledOptions = (function () {
 
         return function(disableOptions) {

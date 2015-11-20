@@ -14,56 +14,100 @@
  * @authors Jake Myers <jmyers0022@gmail.com>, Vaughn Draughon <vaughn@rocksolidwebdesign.com>
  */
 
- Selectize.define('disable_options', function(options) {
-  var self = this;
+ Selectize.define('disable_options', function(options){
 
-  options = $.extend({
-    'disableOptions': []
-  }, options);
+    var self = this;
 
-  self.onFocus = (function() {
-    var original = self.onFocus;
+    if(Object.keys(options).length > 0) {
 
-    return function() {
-      original.apply(this, arguments);
+        options = $.extend({'disableOptions': []}, options);
+    }
 
-      $.each(options.disableOptions, function(index, option) {
-        self.$dropdown_content.find('[data-value="' + String(option) + '"]').addClass('option-disabled');
-      });
-    };
-  })();
+    self.setDisabledOptions = (function () {
 
-  self.onOptionSelect = (function() {
-    var original = self.onOptionSelect;
+        return function(disableOptions) {
 
-    return function(e) {
-      var value, $target, $option;
+            if(Object.prototype.toString.call(disableOptions) === '[object Array]') {
 
-      if (e.preventDefault) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+                options = $.extend({'disableOptions': []}, {'disableOptions': disableOptions});
+            }
+            else {
 
-      $target = $(e.currentTarget);
-
-      if ($target.hasClass('option-disabled')) {
-        return;
-      } else if ($target.hasClass('create')) {
-        self.createItem();
-      } else {
-        value = $target.attr('data-value');
-        if (value) {
-          self.lastQuery = null;
-          self.setTextboxValue('');
-          self.addItem(value);
-          if (!self.settings.hideSelected && e.type && /mouse/.test(e.type)) {
-            self.setActiveOption(self.getOption(value));
-          }
+                console.error('options must be passed in array');
+            }
         }
 
-        self.blur();
-      }
-      return original.apply(this, arguments);
-    };
-  })();
+    })();
+
+    self.enableOptions = (function () {
+
+        return function(enableOptions) {
+
+            if(enableOptions !== undefined) {
+
+                if(Object.prototype.toString.call(enableOptions) === '[object Array]') {
+
+                    options = $.extend({'disableOptions': []}, {'disableOptions': enableOptions});
+                }
+                else {
+
+                    console.error('options must be passed in array');
+                }
+            }
+            else {
+
+                options.disableOptions = [];
+            }
+        }
+    })();
+
+    self.onFocus = (function() {
+        var original = self.onFocus;
+
+        return function() {
+            original.apply(this, arguments);
+
+            for(var option in options.disableOptions) {
+
+                self.$dropdown_content
+                    .find('[data-value="' + String(options.disableOptions[option]) + '"]')
+                    .addClass('option-disabled');
+            }
+        };
+    })();
+
+    self.onOptionSelect = (function() {
+        var original = self.onOptionSelect;
+
+        return function(e) {
+            var value;
+            var $target;
+
+            if (e.preventDefault) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            $target = $(e.currentTarget);
+
+            if ($target.hasClass('option-disabled')) {
+                return;
+            } else if ($target.hasClass('create')) {
+                self.createItem();
+            } else {
+                value = $target.attr('data-value');
+                if (value) {
+                    self.lastQuery = null;
+                    self.setTextboxValue('');
+                    self.addItem(value);
+                    if (!self.settings.hideSelected && e.type && /mouse/.test(e.type)) {
+                        self.setActiveOption(self.getOption(value));
+                    }
+                }
+
+                self.blur();
+            }
+            return original.apply(this, arguments);
+        };
+    })();
 });
